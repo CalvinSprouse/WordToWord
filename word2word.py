@@ -1,7 +1,8 @@
-from anytree import Node, RenderTree, Resolver, PreOrderIter, search
+from anytree import Node, RenderTree, Resolver, PreOrderIter, search, AsciiStyle
 from rich import print
 
 import enchant
+import random
 
 # constants
 ALPHABET = [chr(letter).lower() for letter in range(97, 123)]
@@ -53,14 +54,13 @@ def change_char(pos: int):
 
 # special tree print
 def render_tree(tree: Node):
-    for pre, fill, node in RenderTree(tree):
-        print("%s%s" % (pre, node.name))
+    print(RenderTree(tree, style=AsciiStyle()))
 
 
 # essentially render tree but to text file
 def output_tree(tree: Node, name=""):
     with open(f"{name}.out", "w") as w:
-        for pre, fill, node in RenderTree(tree):
+        for pre, fill, node in RenderTree(tree, style=AsciiStyle()):
             w.write("%s%s\n" % (pre, node.name))
 
 
@@ -78,11 +78,13 @@ def has_match(tree1: Node, tree2: Node):
 
 
 # returns a list of names from leaf to root (child to oldest)
-def deconstruct_tree(tree: Node, _names=[]):
+def deconstruct_tree(tree: Node, names=[]):
+    if not names:
+        names.append(tree.name)
     parent = tree.parent
     if parent:
-        return deconstruct_tree(parent, _names=_names + [parent.name])
-    return _names
+        return deconstruct_tree(parent, names=names + [parent.name])
+    return names
 
 
 # generate new branches from youngest members of a tree
@@ -99,7 +101,6 @@ def generate_branches(tree: Node):
 # link two words via tree and return all matches
 def generate_word_tree_to_target(start_tree: Node, finish_tree: Node):
     match = has_match(start_tree, finish_tree)
-
     while not match[0]:
         if not generate_branches(start_tree) or not generate_branches(finish_tree):
             match = has_match(start_tree, finish_tree)
@@ -114,24 +115,25 @@ def generate_word_tree_to_target(start_tree: Node, finish_tree: Node):
 
 # find all connected branches and return a list of nodes? list of start to finishes?
 def find_connections(start_tree: Node, finish_tree: Node, matches):
+    output_tree(start_tree, "st")
+    output_tree(finish_tree, "ft")
     series = []
     for match in matches:
         s_match = list(reversed(deconstruct_tree(search.find(
-            start_tree, lambda node: node.name == match))))
+            start_tree, lambda node: node.name == match), [])))
         f_match = deconstruct_tree(search.find(
-            finish_tree, lambda node: node.name == match))
+            finish_tree, lambda node: node.name == match), [])
         series.append(s_match[:-1] + f_match)
     return series
 
 
 # connect two words by changing one letter at a time
-def word_to_word(start_word: str, finish_word: str):
+def two_word_connection(start_word: str, finish_word: str):
     if len(start_word) == len(finish_word) and is_legal_word(
             start_word) and is_legal_word(finish_word):
         start_node = Node(start_word)
         finish_node = Node(finish_word)
         match = generate_word_tree_to_target(start_node, finish_node)
-
         if match:
             return find_connections(start_node, finish_node, match)
         return None
@@ -158,5 +160,12 @@ def convert_to_tree(chain):
     return root
 
 
+# chain multipe words together
+def word_to_word(start_word: str, second_word: str, *other_words, duplicate=False):
+    pass
+
+
 if __name__ == "__main__":
-    render_tree(convert_to_tree(get_shortest(word_to_word("ticket", "coffer"))))
+    print(two_word_connection(
+        random.choice(["army", "navy", "tank", "bank", "sank", "pens", "ship", "papa"]),
+        random.choice(["ruck", "rake", "beef", "fast"])))

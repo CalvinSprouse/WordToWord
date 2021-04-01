@@ -1,6 +1,14 @@
+anytree==2.8.0
 colorama==0.4.4
 commonmark==0.9.1
+flake8==3.9.0
+jedi==0.18.0
+mccabe==0.6.1
+parso==0.8.2
+pycodestyle==2.7.0
 pyenchant==3.2.0
+pyflakes==2.3.1
 Pygments==2.8.1
 rich==10.0.1
+six==1.15.0
 typing-extensions==3.7.4.3
