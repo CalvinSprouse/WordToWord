@@ -1,17 +1,11 @@
-from anytree import Node, RenderTree, Resolver, PreOrderIter, search, AsciiStyle
+from anytree import Node, RenderTree, PreOrderIter, search, AsciiStyle
 from rich import print
 
+import argparse
 import enchant
-import random
 
 # constants
 ALPHABET = [chr(letter).lower() for letter in range(97, 123)]
-squirrel = Resolver("name")
-
-
-# class to change Node seperator
-class WordNode(Node):
-    seperator = ">"
 
 
 # word generators
@@ -139,13 +133,6 @@ def two_word_connection(start_word: str, finish_word: str):
         return None
 
 
-# connect 3 or more words
-def word_chain(
-        start_word: str, second_word: str, third_word: str,
-        *other_words, duplicate=False):
-    pass
-
-
 # returns the first shortest chain
 def get_shortest(chain):
     return min(chain, key=len)
@@ -161,11 +148,59 @@ def convert_to_tree(chain):
 
 
 # chain multipe words together
-def word_to_word(start_word: str, second_word: str, *other_words, duplicate=False):
-    pass
+def word_to_word(start_word: str, *other_words, duplicate=False):
+    try:
+        word_list = list(reversed([start_word] + list(other_words)))
+        returned_solutions = []
+        if not any([not is_legal_word(word) for word in word_list]):
+            first_word = word_list.pop()
+            solutions = []
+            while len(word_list) > 0:
+                second_word = word_list.pop()
+                solutions.append(two_word_connection(first_word, second_word))
+                first_word = second_word
+
+            base_combo = solutions.pop(0)
+            for word_combo in solutions:
+                new_list = []
+                for b_chain in base_combo:
+                    for chain in word_combo:
+                        new_list.append(b_chain[:-1] + chain)
+                base_combo = new_list
+            returned_solutions = base_combo
+
+            # remove duplicates
+            if not duplicate:
+                returned_solutions = [combo for combo in returned_solutions if
+                                      len(set(combo)) == len(combo)]
+        return returned_solutions
+    except Exception:
+        return []
+
+
+# for the output when finding all
+def prettify_list(list):
+    return_list = []
+    for chain in list:
+        return_list.append(" -> ".join(chain))
+    return "\n".join(''.join(map(str, item)) for item in return_list)
 
 
 if __name__ == "__main__":
-    print(two_word_connection(
-        random.choice(["army", "navy", "tank", "bank", "sank", "pens", "ship", "papa"]),
-        random.choice(["ruck", "rake", "beef", "fast"])))
+    parser = argparse.ArgumentParser(
+        description="Find the shortest way to get from one word to another one letter change at a time")
+    parser.add_argument(
+        "words", metavar="W", type=str, nargs="+", help="List of words to connect")
+    parser.add_argument(
+        "--all", dest="find_all", action="store_const", const=True, default=False)
+    parser.add_argument(
+        "--duplicates-allowed", dest="dup",
+        action="store_const", const=True, default=False)
+
+    args = vars(parser.parse_args())
+    if args["find_all"]:
+        print(prettify_list(word_to_word(
+            args["words"][0], *args["words"][1:], duplicate=args["dup"])))
+    else:
+        print(prettify_list([get_shortest(word_to_word(
+            args["words"][0], *args["words"][1:], duplicate=args["dup"]))]))

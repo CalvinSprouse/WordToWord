@@ -1,5 +1,6 @@
 ### WordToWord ###
 *.out
+build.bat
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
