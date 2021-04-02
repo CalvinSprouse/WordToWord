@@ -144,10 +144,10 @@ def word_to_word(start_word: str, *other_words, duplicate=False):
     try:
         word_list = list(reversed([start_word] + list(other_words)))
         returned_solutions = []
-        if not any([not is_legal_word(word) for word in word_list]):
+        if all(is_legal_word(word) for word in word_list):
             first_word = word_list.pop()
             solutions = []
-            while len(word_list) > 0:
+            while word_list:
                 second_word = word_list.pop()
                 solutions.append(two_word_connection(first_word, second_word))
                 first_word = second_word
@@ -172,9 +172,7 @@ def word_to_word(start_word: str, *other_words, duplicate=False):
 
 # for the output when finding all
 def prettify_list(list):
-    return_list = []
-    for chain in list:
-        return_list.append(" -> ".join(chain))
+    return_list = [" -> ".join(chain) for chain in list]
     return "\n".join(''.join(map(str, item)) for item in return_list)
 
 
