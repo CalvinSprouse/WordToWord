@@ -19,14 +19,6 @@ def generate_permutations_on_tree(
     generator = change_char(pos)
 
     # generates all changes to the first character of the word
-    '''
-    faster but brain hurty
-    word_list = ([generator(word, char) for char in chars
-                  if dictionary.check(generator(word, char))
-                  and generator(word, char) != word.lower()
-                  and not search.find(
-                    tree, lambda node: node.name == generator(word, char))])
-    '''
     word_list = []
     for char in chars:
         new_word = generator(word, char)
